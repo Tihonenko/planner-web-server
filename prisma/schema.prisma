@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  login     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  folders   Folder[]
+  notes     Note[]
+}
+
+model Folder {
+  id        String   @id @default(uuid())
+  title     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes     Note[]
+
+  @@index([userId])
+}
+
+model Note {
+  id            String    @id @default(uuid())
+  title         String
+  content       String?
+  isDone        Boolean
+  isShared      Boolean   @default(false)
+  status        Status
+  priority      Priority
+  dateTimeStart DateTime?
+  dateTimeEnd   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  userId        String
+  folderId      String?
+  folder        Folder?   @relation(fields: [folderId], references: [id])
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subtasks      SubTask[]
+
+  @@index([userId])
+  @@index([folderId])
+  @@index([status])
+  @@index([priority])
+  @@index([dateTimeStart])
+  @@index([dateTimeEnd])
+  @@index([userId, status])
+}
+
+model SubTask {
+  id        String   @id @default(uuid())
+  title     String
+  isDone    Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  noteId    String
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Status {
+  Inbox
+  Planned
+  InProgress
+  Done
+}
+
+enum Priority {
+  Low
+  Medium
+  High
+}
