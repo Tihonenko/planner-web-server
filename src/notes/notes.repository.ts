@@ -66,10 +66,6 @@ export class NotesRepository {
   }
 
   async deleteTask(userId: string, id: string) {
-    const task = await this.prisma.note.findUnique({ where: { userId, id } });
-
-    if (!task) return task;
-
     return await this.prisma.note.delete({ where: { userId, id } });
   }
 }
