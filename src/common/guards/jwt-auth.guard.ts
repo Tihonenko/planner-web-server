@@ -9,7 +9,7 @@ import * as jwt from 'jsonwebtoken';
 
 export interface JwtPayloadAuth {
   id: string;
-  login: string;
+  email: string;
   role: Role;
 }
 
@@ -26,7 +26,10 @@ export class JwtAuthGuard implements CanActivate {
     if (!token) throw new UnauthorizedException();
 
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayloadAuth;
+      const payload = jwt.verify(
+        token,
+        process.env.JWT_SECRET!,
+      ) as JwtPayloadAuth;
 
       request.user = payload;
 

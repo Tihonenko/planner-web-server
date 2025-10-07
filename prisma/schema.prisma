@@ -8,78 +8,80 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  login     String   @unique
-  password  String
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  folders   Folder[]
-  notes     Note[]
+  id          String    @id @default(uuid())
+  email       String    @unique
+  password    String
+  hashedRt    String?
+  name        String?
+  role        Role      @default(USER)
+  isActive    Boolean   @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tasks       Task[]
+  folders     Folder[]
+
+  @@index([email])
+  @@index([isActive])
+  @@index([role])
 }
 
 model Folder {
   id        String   @id @default(uuid())
   title     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  tasks     Task[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notes     Note[]
 
   @@index([userId])
+  @@index([title])
 }
 
-model Note {
+model Task {
   id            String    @id @default(uuid())
   title         String
   content       String?
-  isDone        Boolean
+  isDone        Boolean   @default(false)
   isShared      Boolean   @default(false)
-  status        Status
-  priority      Priority
+  priority      Priority  @default(Low)
   dateTimeStart DateTime?
   dateTimeEnd   DateTime?
+  folder        Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  folderId      String?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  subtasks      SubTask[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  userId        String
-  folderId      String?
-  folder        Folder?   @relation(fields: [folderId], references: [id])
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subtasks      SubTask[]
 
   @@index([userId])
   @@index([folderId])
-  @@index([status])
-  @@index([priority])
-  @@index([dateTimeStart])
-  @@index([dateTimeEnd])
-  @@index([userId, status])
+  @@index([isDone])
+  @@index([userId, isDone])
+  @@index([userId, folderId])
+  @@index([userId, priority])
+  @@index([userId, dateTimeStart, dateTimeEnd])
 }
 
 model SubTask {
   id        String   @id @default(uuid())
   title     String
-  isDone    Boolean
+  isDone    Boolean  @default(false)
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  noteId    String
-  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
 
-  @@index([noteId])
+  @@index([taskId])
+  @@index([isDone])
 }
 
 enum Role {
-  ADMIN
   USER
-}
-
-enum Status {
-  Inbox
-  Planned
-  InProgress
-  Done
+  ADMIN
+  BLOCKED
 }
 
 enum Priority {
