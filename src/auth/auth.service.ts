@@ -16,43 +16,84 @@ export class AuthService {
 
   async register(dto: RegisterDTO) {
     const existing = await this.prisma.user.findUnique({
-      where: { login: dto.login },
-    }); // DB query
+      where: { email: dto.email },
+    });
     if (existing) throw new BadRequestException('User already exists');
 
-    const hashed = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
 
     const user = await this.prisma.user.create({
       data: {
         name: dto.name,
-        login: dto.login,
-        password: hashed,
+        email: dto.email,
+        password: hashedPassword,
+        role: Role.USER,
       },
-    }); // DB query
+    });
 
-    return {
-      token: this.generateToken(user.id, user.login, user.role),
-    };
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
+
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
   }
 
   async login(dto: LoginDTO) {
     const user = await this.prisma.user.findUnique({
-      where: { login: dto.login },
-    }); // DB query
+      where: { email: dto.email },
+    });
     if (!user) throw new UnauthorizedException('Incorrect login or password');
 
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) throw new UnauthorizedException('Incorrect login or password');
 
-    // add user type without password
-    return {
-      token: this.generateToken(user.id, user.login, user.role),
-    };
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
+
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
   }
 
-  private generateToken(id: string, login: string, role: string) {
-    return jwt.sign({ id, login, role }, process.env.JWT_SECRET!, {
-      expiresIn: '7d',
+  async refreshTokens(userId: string, refreshToken: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
     });
+    if (!user || !user.email) throw new UnauthorizedException('Access denied');
+
+    if (!user || !user.hashedRt) {
+      throw new UnauthorizedException('Access denied');
+    }
+
+    const refreshMatches = await bcrypt.compare(refreshToken, user.hashedRt);
+    if (!refreshMatches) throw new UnauthorizedException('Invalid token');
+
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
+  }
+
+  private async updateRefreshToken(userId: string, refreshToken: string) {
+    const hashedRt = await bcrypt.hash(refreshToken, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { hashedRt },
+    });
+  }
+
+  private async generateTokens(id: string, login: string, role: Role) {
+    const accessToken = jwt.sign({ id, login, role }, process.env.JWT_SECRET!, {
+      expiresIn: '15m',
+    });
+
+    const refreshToken = jwt.sign(
+      { id, login, role },
+      process.env.JWT_REFRESH_SECRET!,
+      {
+        expiresIn: '7d',
+      },
+    );
+
+    return { accessToken, refreshToken };
   }
 }
