@@ -7,7 +7,7 @@ export class GetUserDto {
   @ApiProperty()
   name: string;
   @ApiProperty()
-  login: string;
+  email: string;
   @ApiProperty()
   createdAt: Date;
   @ApiProperty()
@@ -17,7 +17,7 @@ export class GetUserDto {
     Object.assign(this, {
       id: user.id,
       name: user.name,
-      login: user.login,
+      email: user.email,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     });

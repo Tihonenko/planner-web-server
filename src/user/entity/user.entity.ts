@@ -14,14 +14,23 @@ export class UserEntity implements User {
   name: string;
 
   @ApiProperty()
-  login: string;
+  email: string;
 
   @Exclude()
   password: string;
 
+  @ApiProperty()
+  hashedRt: string | null;
+
+  @ApiProperty()
+  isActive: boolean;
+
   @ApiProperty({ enum: Role, default: Role.USER })
   @Exclude()
   role: Role;
+
+  @ApiProperty()
+  lastLoginAt: Date | null;
 
   @ApiProperty()
   createdAt: Date;
