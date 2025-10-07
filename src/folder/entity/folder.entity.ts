@@ -1,12 +1,12 @@
-import { TaskEntity } from '@/src/notes/entity/task.entity';
+import { TaskEntity } from '@/src/tasks/entity/task.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class FolderEntity {
-  constructor({ notes, ...data }: Partial<FolderEntity>) {
+  constructor({ tasks, ...data }: Partial<FolderEntity>) {
     Object.assign(this, data);
 
-    if (notes && notes.length > 0) {
-      this.notes = notes.map((notes) => new TaskEntity(notes));
+    if (tasks && tasks.length > 0) {
+      this.tasks = tasks.map((task) => new TaskEntity(task));
     }
   }
 
@@ -26,5 +26,5 @@ export class FolderEntity {
   userId: string;
 
   @ApiProperty({ type: TaskEntity, required: false })
-  notes?: TaskEntity[];
+  tasks?: TaskEntity[];
 }

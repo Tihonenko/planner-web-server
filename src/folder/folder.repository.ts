@@ -16,7 +16,7 @@ export class FolderRepository {
     return await this.prisma.folder.findFirst({
       where: { userId, id },
       include: {
-        notes: {
+        tasks: {
           orderBy: {
             createdAt: 'desc',
           },
@@ -25,14 +25,14 @@ export class FolderRepository {
     });
   }
 
-  async createFolder(data: Prisma.FolderUncheckedCreateWithoutNotesInput) {
+  async createFolder(data: Prisma.FolderUncheckedCreateWithoutTasksInput) {
     return await this.prisma.folder.create({ data });
   }
 
   async updateFolder(
     userId: string,
     id: string,
-    data: Prisma.FolderUncheckedUpdateWithoutNotesInput,
+    data: Prisma.FolderUncheckedUpdateWithoutTasksInput,
   ) {
     return await this.prisma.folder.update({
       where: {
@@ -44,13 +44,6 @@ export class FolderRepository {
   }
 
   async deleteFolder(userId: string, id: string) {
-    await this.prisma.note.updateMany({
-      where: { userId, id },
-      data: {
-        folderId: null,
-      },
-    });
-
     return await this.prisma.folder.delete({
       where: {
         userId,
