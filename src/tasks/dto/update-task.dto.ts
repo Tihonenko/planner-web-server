@@ -1,4 +1,6 @@
-import { Priority, Status } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
+import { Priority } from '@prisma/client';
+import { SubTaskEntity } from '../entity/subtask.entity';
 import {
   IsArray,
   IsBoolean,
@@ -9,21 +11,20 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { CreateSubTaskDto } from './create-subtask.dto';
 import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
-import { SubTaskEntity } from '../entity/subtask.entity';
+import { CreateSubTaskDto } from './create-subtask.dto';
 
-export class CreateTaskDto {
+export class UpdateTaskDto {
+  @IsOptional()
   @IsString()
-  @MinLength(2)
+  @MinLength(3)
   @ApiProperty()
-  title: string;
+  title?: string;
 
   @IsOptional()
   @IsString()
   @ApiProperty({ required: false, nullable: true })
-  content?: string;
+  content?: string | null;
 
   @IsOptional()
   @IsBoolean()
@@ -31,19 +32,9 @@ export class CreateTaskDto {
   isDone?: boolean = false;
 
   @IsOptional()
-  @IsBoolean()
-  @ApiProperty({ required: false, default: false })
-  isShared?: boolean = false;
-
-  @IsOptional()
-  @IsEnum(Status)
-  @ApiProperty({ enum: Status, default: Status.Inbox })
-  status: Status;
-
-  @IsOptional()
   @IsEnum(Priority)
   @ApiProperty({ enum: Priority, default: Priority.Low })
-  priority: Priority;
+  priority?: Priority;
 
   @IsOptional()
   @IsDateString()
@@ -65,5 +56,5 @@ export class CreateTaskDto {
   @ValidateNested({ each: true })
   @Type(() => CreateSubTaskDto)
   @ApiProperty({ required: false, type: SubTaskEntity })
-  subtasks?: CreateSubTaskDto[];
+  subtasks?: SubTaskEntity[];
 }

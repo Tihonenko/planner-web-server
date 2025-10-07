@@ -9,17 +9,15 @@ import {
   Patch,
   Post,
   Req,
-  Res,
   UseGuards,
 } from '@nestjs/common';
-import { NotesService } from './notes.service';
+import { TasksService } from './tasks.service';
 import {
   JwtAuthGuard,
   JwtPayloadAuth,
 } from '@src/common/guards/jwt-auth.guard';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
-import { GetTaskDto } from './dto/get-task.dto';
 import { TaskEntity } from './entity/task.entity';
 import { UpdateTaskDto } from './dto/update-task.dto';
 
@@ -28,15 +26,15 @@ interface TaskReq extends Request {
 }
 
 @Controller('tasks')
-export class NotesController {
-  constructor(private readonly NotesService: NotesService) {}
+export class TasksController {
+  constructor(private readonly tasksService: TasksService) {}
 
   @UseGuards(JwtAuthGuard)
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: TaskEntity })
   async getFullTask(@Req() req: TaskReq) {
-    return await this.NotesService.getFullNotes(req.user.id);
+    return await this.tasksService.getFullNotes(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -44,7 +42,7 @@ export class NotesController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: TaskEntity })
   async getTaskById(@Req() req: TaskReq, @Param('id') id: string) {
-    return await this.NotesService.getNotesById(req.user.id, id);
+    return await this.tasksService.getNotesById(req.user.id, id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -52,7 +50,7 @@ export class NotesController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: TaskEntity })
   async createTask(@Req() req: TaskReq, @Body() dto: CreateTaskDto) {
-    return await this.NotesService.create(req.user.id, dto);
+    return await this.tasksService.create(req.user.id, dto);
   }
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
@@ -63,7 +61,7 @@ export class NotesController {
     @Param('id') id: string,
     @Body() dto: UpdateTaskDto,
   ) {
-    return await this.NotesService.updateTask(req.user.id, id, dto);
+    return await this.tasksService.updateTask(req.user.id, id, dto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -72,7 +70,7 @@ export class NotesController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: TaskEntity })
   async deleteTask(@Req() req: TaskReq, @Param('id') id: string) {
-    await this.NotesService.delete(req.user.id, id);
+    await this.tasksService.delete(req.user.id, id);
     return {
       statusCode: HttpStatus.OK,
       message: 'Task Deleted',

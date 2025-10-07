@@ -1,8 +1,8 @@
-import { Note, Priority, Status, SubTask } from '@prisma/client';
+import { Priority, SubTask, Task } from '@prisma/client';
 import { SubTaskEntity } from './subtask.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class TaskEntity implements Note {
+export class TaskEntity implements Task {
   constructor({ subtasks, ...data }: Partial<TaskEntity>) {
     Object.assign(this, data);
 
@@ -25,9 +25,6 @@ export class TaskEntity implements Note {
 
   @ApiProperty({ required: false, default: false })
   isShared: boolean = false;
-
-  @ApiProperty({ enum: Status, default: Status.Inbox })
-  status: Status;
 
   @ApiProperty({ enum: Priority, default: Priority.Low })
   priority: Priority;

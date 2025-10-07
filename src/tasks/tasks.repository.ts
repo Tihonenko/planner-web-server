@@ -4,22 +4,22 @@ import { Prisma } from '@prisma/client';
 import { CreateSubTaskDto } from './dto/create-subtask.dto';
 
 @Injectable()
-export class NotesRepository {
+export class TasksRepository {
   constructor(private prisma: PrismaService) {}
 
   async getTasks(userId: string) {
-    return await this.prisma.note.findMany({
+    return await this.prisma.task.findMany({
       where: { userId },
       include: { subtasks: true },
     });
   }
 
   async createTask(
-    data: Prisma.NoteUncheckedCreateInput & { subtasks?: CreateSubTaskDto[] },
+    data: Prisma.TaskUncheckedCreateInput & { subtasks?: CreateSubTaskDto[] },
   ) {
     const { subtasks, ...noteData } = data;
 
-    return await this.prisma.note.create({
+    return await this.prisma.task.create({
       data: {
         ...noteData,
         ...(subtasks &&
@@ -41,9 +41,9 @@ export class NotesRepository {
   async update(
     userId: string,
     id: string,
-    data: Prisma.NoteUncheckedUpdateManyInput,
+    data: Prisma.TaskUncheckedUpdateManyInput,
   ) {
-    return await this.prisma.note.update({
+    return await this.prisma.task.update({
       where: {
         userId,
         id,
@@ -53,7 +53,7 @@ export class NotesRepository {
   }
 
   async findById(userId: string, id: string) {
-    return await this.prisma.note.findUnique({
+    return await this.prisma.task.findUnique({
       where: { userId, id },
       include: {
         subtasks: true,
@@ -62,10 +62,10 @@ export class NotesRepository {
   }
 
   async findByTitle(title: string) {
-    return await this.prisma.note.findMany({ where: { title } });
+    return await this.prisma.task.findMany({ where: { title } });
   }
 
   async deleteTask(userId: string, id: string) {
-    return await this.prisma.note.delete({ where: { userId, id } });
+    return await this.prisma.task.delete({ where: { userId, id } });
   }
 }

@@ -10,7 +10,7 @@ export class SubTaskEntity implements SubTask {
   id: string;
 
   @ApiProperty()
-  noteId: string;
+  taskId: string;
 
   @ApiProperty()
   title: string;
