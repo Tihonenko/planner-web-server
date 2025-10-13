@@ -10,6 +10,7 @@ import {
   Post,
   Req,
   UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import {
@@ -20,6 +21,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { TaskEntity } from './entity/task.entity';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { IsBoolean } from 'class-validator';
 
 interface TaskReq extends Request {
   user: JwtPayloadAuth;
@@ -62,6 +64,21 @@ export class TasksController {
     @Body() dto: UpdateTaskDto,
   ) {
     return await this.tasksService.updateTask(req.user.id, id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/isDone')
+  @ApiBearerAuth()
+  @ApiOkResponse()
+  async isDone(
+    @Req() req: TaskReq,
+    @Param('id') id: string,
+    @Body()
+    body: {
+      isDone: boolean;
+    },
+  ) {
+    return await this.tasksService.updateIsDone(req.user.id, id, body.isDone);
   }
 
   @UseGuards(JwtAuthGuard)
