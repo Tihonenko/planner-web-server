@@ -8,6 +8,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { Priority } from '@prisma/client';
 import { TaskEntity } from './entity/task.entity';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { IsBoolean, isBoolean } from 'class-validator';
 
 @Injectable()
 export class TasksService {
@@ -46,6 +47,20 @@ export class TasksService {
     if (!task) throw new BadRequestException('Task Not Found');
 
     const updateTask = await this.tasksRepo.update(userId, id, dto);
+
+    return new TaskEntity(updateTask);
+  }
+
+  async updateIsDone(userId: string, id: string, isDone: boolean) {
+    const task = await this.tasksRepo.findById(userId, id);
+
+    if (!task) throw new NotFoundException('Task Not Found');
+
+    if (isDone !== true && isDone !== false) {
+      throw new BadRequestException('is done must be bool');
+    }
+
+    const updateTask = await this.tasksRepo.updateIsDone(userId, id, isDone);
 
     return new TaskEntity(updateTask);
   }

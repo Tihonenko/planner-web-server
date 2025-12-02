@@ -52,6 +52,18 @@ export class TasksRepository {
     });
   }
 
+  async updateIsDone(userId: string, id: string, isDone: boolean) {
+    return await this.prisma.task.update({
+      where: {
+        userId,
+        id,
+      },
+      data: {
+        isDone,
+      },
+    });
+  }
+
   async findById(userId: string, id: string) {
     return await this.prisma.task.findUnique({
       where: { userId, id },
