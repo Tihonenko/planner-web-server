@@ -47,9 +47,18 @@ export class AuthService {
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) throw new UnauthorizedException('Incorrect login or password');
 
+    if (user.isActive === false) {
+      throw new UnauthorizedException('Your account has been blocked');
+    }
+
     const tokens = await this.generateTokens(user.id, user.email, user.role);
 
     await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
 
     return tokens;
   }
