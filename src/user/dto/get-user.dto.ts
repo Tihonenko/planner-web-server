@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 
 export class GetUserDto {
   @ApiProperty()
@@ -12,6 +12,8 @@ export class GetUserDto {
   createdAt: Date;
   @ApiProperty()
   updatedAt: Date;
+  @ApiProperty({ enum: Role })
+  role: Role;
 
   constructor(user: User) {
     Object.assign(this, {
@@ -20,6 +22,7 @@ export class GetUserDto {
       email: user.email,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      role: user.role,
     });
   }
 }

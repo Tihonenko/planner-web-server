@@ -26,7 +26,7 @@ export class UserEntity implements User {
   isActive: boolean;
 
   @ApiProperty({ enum: Role, default: Role.USER })
-  @Exclude()
+  // @Exclude()
   role: Role;
 
   @ApiProperty()

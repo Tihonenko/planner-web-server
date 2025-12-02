@@ -26,6 +26,10 @@ export class UserRepository {
   async delete(id: string): Promise<User> {
     return await this.prisma.user.delete({ where: { id } });
   }
+
+  async getCountUsers(): Promise<number> {
+    return await this.prisma.user.count();
+  }
   //CRUD extends BaseRepository
   //TODO: mb add filters for get users, ADMIN ROUTE
 }

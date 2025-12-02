@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,18 +14,20 @@ import { GetUserDto } from './dto/get-user.dto';
 export class UserService {
   constructor(private readonly userRepo: UserRepository) {}
 
-  async getAllUsers(): Promise<GetUserDto[]> {
+  async getAllUsers(): Promise<User[]> {
     const users: User[] = await this.userRepo.findAll();
 
-    const usersRes = users.map((user) => new GetUserDto(user));
-
-    return usersRes;
+    return users;
   }
 
   async getById(id: string): Promise<GetUserDto> {
     const user = await this.userRepo.findById(id);
 
     if (!user) throw new NotFoundException('User Not Found');
+
+    if (user.isActive === false) {
+      throw new ForbiddenException('Your account has been blocked');
+    }
 
     return new GetUserDto(user);
   }
