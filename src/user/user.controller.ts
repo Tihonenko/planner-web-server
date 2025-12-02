@@ -75,7 +75,7 @@ export class UserController {
 
     if (!users) throw new NotFoundException();
 
-    return users.map((user) => new UserEntity(user));
+    return users;
   }
 
   // TODO: add delete user by admin
