@@ -7,10 +7,20 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { FolderModule } from './folder/folder.module';
 import { TasksModule } from './tasks/tasks.module';
+import { AdminModule } from './admin/admin.module';
+// import { AiModule } from './ai/ai.module';
 
 @Module({
-  imports: [UserModule, PrismaModule, AuthModule, TasksModule, FolderModule],
+  imports: [
+    UserModule,
+    PrismaModule,
+    AuthModule,
+    TasksModule,
+    FolderModule,
+    AdminModule
+    // AiModule,
+  ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
-export class AppModule {}
+export class AppModule { }
