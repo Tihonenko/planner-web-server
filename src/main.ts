@@ -2,9 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
   const config = new DocumentBuilder()
     .setTitle('Planner-course-api')
@@ -13,11 +15,7 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
-  const corsOrigins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
-    : process.env.NODE_ENV === 'production'
-      ? []
-      : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'];
+  const corsOrigins = configService.get<string[]>('app.cors.origins', []);
 
   app.enableCors({
     origin: corsOrigins.length > 0 ? corsOrigins : false,
@@ -27,7 +25,8 @@ async function bootstrap() {
     exposedHeaders: ['Authorization'],
   });
 
-  if (process.env.NODE_ENV === 'production') {
+  const nodeEnv = configService.get<string>('app.nodeEnv', 'development');
+  if (nodeEnv === 'production') {
     console.log(`✅ CORS настроен для origins: ${corsOrigins.length > 0 ? corsOrigins.join(', ') : 'none (требуется CORS_ORIGINS)'}`);
   }
     
@@ -36,7 +35,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  const port = process.env.PORT || 8080;
+  const port = configService.get<number>('app.port', 8080);
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
 }

@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Role } from '@prisma/client';
 import * as jwt from 'jsonwebtoken';
 
@@ -15,6 +16,8 @@ export interface JwtPayloadAuth {
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
+  constructor(private configService: ConfigService) {}
+
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
@@ -25,10 +28,15 @@ export class JwtAuthGuard implements CanActivate {
 
     if (!token) throw new UnauthorizedException();
 
+    const jwtSecret = this.configService.get<string>('app.jwt.secret');
+    if (!jwtSecret) {
+      throw new UnauthorizedException('JWT secret is not configured');
+    }
+
     try {
       const payload = jwt.verify(
         token,
-        process.env.JWT_SECRET!,
+        jwtSecret,
       ) as JwtPayloadAuth;
 
       request.user = payload;
