@@ -3,6 +3,7 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
@@ -12,7 +13,10 @@ import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService,
+  ) {}
 
   async register(dto: RegisterDTO) {
     const existing = await this.prisma.user.findUnique({
@@ -91,13 +95,20 @@ export class AuthService {
   }
 
   private async generateTokens(id: string, login: string, role: Role) {
-    const accessToken = jwt.sign({ id, login, role }, process.env.JWT_SECRET!, {
+    const jwtSecret = this.configService.get<string>('app.jwt.secret');
+    const jwtRefreshSecret = this.configService.get<string>('app.jwt.refreshSecret');
+
+    if (!jwtSecret || !jwtRefreshSecret) {
+      throw new Error('JWT secrets are not configured');
+    }
+
+    const accessToken = jwt.sign({ id, login, role }, jwtSecret, {
       expiresIn: '15m',
     });
 
     const refreshToken = jwt.sign(
       { id, login, role },
-      process.env.JWT_REFRESH_SECRET!,
+      jwtRefreshSecret,
       {
         expiresIn: '7d',
       },
