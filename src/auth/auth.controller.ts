@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { RegisterDTO } from './dto/register.dto';
 import { LoginDTO } from './dto/login.dto';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AuthEntity } from './entity/auth.entity';
+import { AuthEntity } from './Entity/auth.entity';
 
 @ApiTags('Auth')
 @Controller('auth')
