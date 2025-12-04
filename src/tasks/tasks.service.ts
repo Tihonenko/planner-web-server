@@ -12,7 +12,7 @@ import { IsBoolean, isBoolean } from 'class-validator';
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly tasksRepo: TasksRepository) {}
+  constructor(private readonly tasksRepo: TasksRepository) { }
 
   async getFullNotes(userId: string) {
     const tasksData = await this.tasksRepo.getTasks(userId);
@@ -31,6 +31,14 @@ export class TasksService {
   }
 
   async create(userId, dto: CreateTaskDto) {
+    if (dto.dateTimeStart && dto.dateTimeEnd) {
+      const startDate = new Date(dto.dateTimeStart);
+      const endDate = new Date(dto.dateTimeEnd);
+      if (endDate < startDate) {
+        throw new BadRequestException('Дата окончания не может быть раньше даты начала');
+      }
+    }
+
     const newTask = await this.tasksRepo.createTask({
       userId,
       ...dto,
@@ -45,6 +53,17 @@ export class TasksService {
     const task = await this.tasksRepo.findById(userId, id);
 
     if (!task) throw new BadRequestException('Task Not Found');
+
+    const dateTimeStart = dto.dateTimeStart !== undefined ? dto.dateTimeStart : task.dateTimeStart;
+    const dateTimeEnd = dto.dateTimeEnd !== undefined ? dto.dateTimeEnd : task.dateTimeEnd;
+
+    if (dateTimeStart && dateTimeEnd) {
+      const startDate = new Date(dateTimeStart);
+      const endDate = new Date(dateTimeEnd);
+      if (endDate < startDate) {
+        throw new BadRequestException('Дата окончания не может быть раньше даты начала');
+      }
+    }
 
     const updateTask = await this.tasksRepo.update(userId, id, dto);
 
