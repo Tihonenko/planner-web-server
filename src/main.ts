@@ -13,7 +13,23 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
-    app.enableCors();
+  const corsOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
+    : process.env.NODE_ENV === 'production'
+      ? []
+      : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'];
+
+  app.enableCors({
+    origin: corsOrigins.length > 0 ? corsOrigins : false,
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['Authorization'],
+  });
+
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`✅ CORS настроен для origins: ${corsOrigins.length > 0 ? corsOrigins.join(', ') : 'none (требуется CORS_ORIGINS)'}`);
+  }
     
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
