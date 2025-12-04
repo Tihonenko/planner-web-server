@@ -12,7 +12,8 @@ import {
 import { CreateSubTaskDto } from './create-subtask.dto';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { SubTaskEntity } from '../entity/subtask.entity';
+import { SubTaskEntity } from '../entity/subtask.entity.js';
+import { IsDateRangeValid } from './validators/date-range.validator';
 
 export class CreateTaskDto {
   @IsString()

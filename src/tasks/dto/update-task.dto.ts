@@ -13,6 +13,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateSubTaskDto } from './create-subtask.dto';
+import { IsDateRangeValid } from './validators/date-range.validator';
 
 export class UpdateTaskDto {
   @IsOptional()
