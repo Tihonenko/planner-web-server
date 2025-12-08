@@ -16,7 +16,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async register(dto: RegisterDTO) {
     const existing = await this.prisma.user.findUnique({
@@ -67,19 +67,38 @@ export class AuthService {
     return tokens;
   }
 
-  async refreshTokens(userId: string, refreshToken: string) {
+  /**
+   * Обновляет токены используя refresh token
+   * userId извлекается из самого refresh token JWT для безопасности
+   */
+  async refreshTokens(refreshToken: string) {
+    const jwtRefreshSecret = this.configService.get<string>('app.jwt.refreshSecret');
+    if (!jwtRefreshSecret) {
+      throw new UnauthorizedException('Server configuration error');
+    }
+
+    // Верифицируем и декодируем refresh token
+    let payload: { id: string; email: string; role: Role };
+    try {
+      payload = jwt.verify(refreshToken, jwtRefreshSecret) as typeof payload;
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
     const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: payload.id },
     });
     if (!user || !user.email) throw new UnauthorizedException('Access denied');
 
-    if (!user || !user.hashedRt) {
-      throw new UnauthorizedException('Access denied');
+    if (!user.hashedRt) {
+      throw new UnauthorizedException('Session expired, please login again');
     }
 
+    // Проверяем, что refresh token совпадает с сохраненным хэшем
     const refreshMatches = await bcrypt.compare(refreshToken, user.hashedRt);
     if (!refreshMatches) throw new UnauthorizedException('Invalid token');
 
+    // Генерируем новые токены
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
@@ -94,7 +113,14 @@ export class AuthService {
     });
   }
 
-  private async generateTokens(id: string, login: string, role: Role) {
+  async logout(userId: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { hashedRt: null },
+    });
+  }
+
+  private async generateTokens(id: string, email: string, role: Role) {
     const jwtSecret = this.configService.get<string>('app.jwt.secret');
     const jwtRefreshSecret = this.configService.get<string>('app.jwt.refreshSecret');
 
@@ -102,12 +128,12 @@ export class AuthService {
       throw new Error('JWT secrets are not configured');
     }
 
-    const accessToken = jwt.sign({ id, login, role }, jwtSecret, {
+    const accessToken = jwt.sign({ id, email, role }, jwtSecret, {
       expiresIn: '15m',
     });
 
     const refreshToken = jwt.sign(
-      { id, login, role },
+      { id, email, role },
       jwtRefreshSecret,
       {
         expiresIn: '7d',
