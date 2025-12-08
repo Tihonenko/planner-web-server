@@ -3,10 +3,14 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+
+  // Включаем парсинг cookies
+  app.use(cookieParser());
 
   const config = new DocumentBuilder()
     .setTitle('Planner-course-api')
@@ -29,7 +33,7 @@ async function bootstrap() {
   if (nodeEnv === 'production') {
     console.log(`✅ CORS настроен для origins: ${corsOrigins.length > 0 ? corsOrigins.join(', ') : 'none (требуется CORS_ORIGINS)'}`);
   }
-    
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
