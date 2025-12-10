@@ -8,11 +8,14 @@ import { AuthEntity } from './Entity/auth.entity';
 import * as jwt from 'jsonwebtoken';
 
 const REFRESH_TOKEN_COOKIE = 'refreshToken';
+
+const isProduction = process.env.NODE_ENV === 'production';
+
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  secure: isProduction,
+  sameSite: isProduction ? 'none' as const : 'lax' as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000,
   path: '/',
 };
 
@@ -89,7 +92,7 @@ export class AuthController {
       }
     }
 
-    res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/' });
+    res.clearCookie(REFRESH_TOKEN_COOKIE, COOKIE_OPTIONS);
 
     return { message: 'Logged out successfully' };
   }
