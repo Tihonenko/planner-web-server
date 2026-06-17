@@ -1,14 +1,14 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { UpdateUserDTO } from './dto/update-user.dto';
-import * as bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
 import { GetUserDto } from './dto/get-user.dto';
+import { HttpMessages } from '@src/common/i18n/http-messages';
+import { assertUserIsActive } from '@src/common/user-active';
 
 @Injectable()
 export class UserService {
@@ -23,27 +23,17 @@ export class UserService {
   async getById(id: string): Promise<GetUserDto> {
     const user = await this.userRepo.findById(id);
 
-    if (!user) throw new NotFoundException('User Not Found');
+    if (!user) throw new NotFoundException(HttpMessages.userNotFound);
 
-    if (user.isActive === false) {
-      throw new ForbiddenException('Your account has been blocked');
-    }
+    assertUserIsActive(user.isActive);
 
     return new GetUserDto(user);
   }
 
   async update(id: string, dto: UpdateUserDTO) {
-    const data: UpdateUserDTO = { ...dto };
+    const updateUser = await this.userRepo.update(id, dto);
 
-    if (dto.password) {
-      // TODO: ADD CHECK OLD PASSWORD
-
-      data.password = await bcrypt.hash(dto.password, 10);
-    }
-
-    const updateUser = await this.userRepo.update(id, data);
-
-    if (!updateUser) throw new BadRequestException('User Not Updatet');
+    if (!updateUser) throw new BadRequestException(HttpMessages.userNotUpdated);
 
     return new GetUserDto(updateUser);
   }

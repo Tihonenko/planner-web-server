@@ -73,7 +73,7 @@ export class UserController {
   async getAllUsers(@Req() req: UserReq) {
     const users = await this.userService.getAllUsers();
 
-    if (!users) throw new NotFoundException();
+    if (!users) throw new NotFoundException('Пользователи не найдены');
 
     return users;
   }

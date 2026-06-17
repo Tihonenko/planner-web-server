@@ -1,19 +1,20 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
+import { HttpMessages } from '../i18n/http-messages';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorator/roles.decorator';
 
 @Injectable()
-export class RolesGuard implements CanActivate {
+export class RolesGuard implements CanActivate {  
   constructor(private reflector: Reflector) {}
 
   private matchRoles(roles: string[], userRole: string) {
     if(!roles.some(role => role === userRole)) {
-      throw new NotFoundException
+      throw new ForbiddenException(HttpMessages.insufficientPermissions);
     }
 
     return true

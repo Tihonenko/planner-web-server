@@ -11,10 +11,14 @@ import { AdminModule } from './admin/admin.module';
 import { ConfigModule } from '@nestjs/config';
 import { validationSchema } from './config/validation.schema';
 import configuration from './config/configuration';
-// import { AiModule } from './ai/ai.module';
+import { SubtaskModule } from './subtask/subtask.module';
+import { EventsModule } from './events/events.module';
+import { GuardsModule } from './common/guards/guards.module';
+
 
 @Module({
   imports: [
+    GuardsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -29,9 +33,10 @@ import configuration from './config/configuration';
     PrismaModule,
     AuthModule,
     TasksModule,
+    SubtaskModule,
+    EventsModule,
     FolderModule,
     AdminModule
-    // AiModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

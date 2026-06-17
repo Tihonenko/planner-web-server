@@ -7,6 +7,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Role } from '@prisma/client';
 import * as jwt from 'jsonwebtoken';
+import { PrismaService } from '../../prisma/prisma.service';
+import { assertUserIsActive } from '../user-active';
+import { HttpMessages } from '../i18n/http-messages';
 
 export interface JwtPayloadAuth {
   id: string;
@@ -16,34 +19,46 @@ export interface JwtPayloadAuth {
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private prisma: PrismaService,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
-    if (!authHeader) throw new UnauthorizedException();
+    if (!authHeader) throw new UnauthorizedException(HttpMessages.unauthorized);
 
     const token = authHeader.split(' ')[1];
 
-    if (!token) throw new UnauthorizedException();
+    if (!token) throw new UnauthorizedException(HttpMessages.unauthorized);
 
     const jwtSecret = this.configService.get<string>('app.jwt.secret');
     if (!jwtSecret) {
-      throw new UnauthorizedException('JWT secret is not configured');
+      throw new UnauthorizedException(HttpMessages.serverConfigError);
     }
 
+    let payload: JwtPayloadAuth;
     try {
-      const payload = jwt.verify(
-        token,
-        jwtSecret,
-      ) as JwtPayloadAuth;
-
-      request.user = payload;
-
-      return true;
+      payload = jwt.verify(token, jwtSecret) as JwtPayloadAuth;
     } catch {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(HttpMessages.invalidToken);
     }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.id },
+      select: { isActive: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(HttpMessages.accessDenied);
+    }
+
+    assertUserIsActive(user.isActive);
+
+    request.user = payload;
+
+    return true;
   }
 }

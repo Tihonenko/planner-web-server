@@ -26,8 +26,8 @@ export function IsDateRangeValid(validationOptions?: ValidationOptions) {
 
           return endDate >= startDate;
         },
-        defaultMessage(args: ValidationArguments) {
-          return 'Date range is invalid';
+        defaultMessage() {
+          return 'Дата окончания не может быть раньше даты начала';
         },
       },
     });

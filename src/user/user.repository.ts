@@ -30,6 +30,4 @@ export class UserRepository {
   async getCountUsers(): Promise<number> {
     return await this.prisma.user.count();
   }
-  //CRUD extends BaseRepository
-  //TODO: mb add filters for get users, ADMIN ROUTE
 }

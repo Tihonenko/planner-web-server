@@ -20,4 +20,9 @@ export default registerAs('app', () => ({
   ai: {
     geminiApiKey: process.env.GEMINI_API_KEY,
   },
+  mail: {
+    host: process.env.MAIL_HOST || '127.0.0.1',
+    port: process.env.MAIL_PORT ? Number(process.env.MAIL_PORT) : 1025,
+    from: process.env.MAIL_FROM || 'no-reply@planner.local',
+  },
 }));

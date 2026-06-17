@@ -14,12 +14,14 @@ import {
 import { FolderService } from './folder.service';
 import { CreateFolderDto } from './dto/create-folder.dto';
 import { UpdateFolderDto } from './dto/update-folder.dto';
+import { ShareFolderDto } from './dto/share-folder.dto';
 import {
   JwtAuthGuard,
   JwtPayloadAuth,
 } from '@src/common/guards/jwt-auth.guard';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { FolderEntity } from './entity/folder.entity';
+import { FolderShareEntity } from './entity/folder-share.entity';
 
 interface folderReq extends Request {
   user: JwtPayloadAuth;
@@ -46,6 +48,42 @@ export class FolderController {
   @Get()
   async findAll(@Req() req: folderReq) {
     return await this.folderService.findFolders(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/shares')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: FolderShareEntity, isArray: true })
+  async getShares(@Req() req: folderReq, @Param('id') id: string) {
+    return await this.folderService.getFolderShares(req.user.id, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/share')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: FolderShareEntity })
+  async share(
+    @Req() req: folderReq,
+    @Param('id') id: string,
+    @Body() dto: ShareFolderDto,
+  ) {
+    return await this.folderService.shareFolder(req.user.id, id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/share/:userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  async revokeShare(
+    @Req() req: folderReq,
+    @Param('id') id: string,
+    @Param('userId') sharedUserId: string,
+  ) {
+    await this.folderService.revokeShare(req.user.id, id, sharedUserId);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Share revoked',
+    };
   }
 
   @UseGuards(JwtAuthGuard)

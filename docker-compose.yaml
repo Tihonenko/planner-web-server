@@ -8,11 +8,11 @@ services:
     environment:
       POSTGRES_DB: planner_course_test
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: ad1234admin 
+      POSTGRES_PASSWORD: ad1234admin
     ports:
-      - "5432:5432" 
+      - '5432:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data 
+      - postgres_data:/var/lib/postgresql
 
 volumes:
-  postgres_data: 
+  postgres_data:

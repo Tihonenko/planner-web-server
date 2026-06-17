@@ -7,10 +7,4 @@ export class UpdateUserDTO {
   @MinLength(2)
   @ApiProperty()
   name?: string;
-
-  @IsOptional()
-  @IsString()
-  @MinLength(6)
-  @ApiProperty()
-  password?: string;
 }

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpMessages } from '@src/common/i18n/http-messages';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { AdminRepository } from './admin.repository';
@@ -15,7 +16,7 @@ export class AdminService {
 
     const user = await this.adminRepo.updateActive(id, updateAdminDto.isActive);
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException(HttpMessages.userNotFound);
 
     return user;
   }

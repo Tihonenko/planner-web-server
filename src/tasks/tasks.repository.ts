@@ -2,6 +2,21 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { CreateSubTaskDto } from './dto/create-subtask.dto';
+import {
+  taskOwnedWhere,
+  taskReadableWhere,
+} from '@src/common/task-access';
+
+const taskInclude = {
+  subtasks: true,
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  },
+} as const;
 
 @Injectable()
 export class TasksRepository {
@@ -9,8 +24,9 @@ export class TasksRepository {
 
   async getTasks(userId: string) {
     return await this.prisma.task.findMany({
-      where: { userId },
-      include: { subtasks: true },
+      where: taskReadableWhere(userId),
+      include: taskInclude,
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -34,7 +50,7 @@ export class TasksRepository {
             },
           }),
       },
-      include: { subtasks: true },
+      include: taskInclude,
     });
   }
 
@@ -49,6 +65,7 @@ export class TasksRepository {
         id,
       },
       data,
+      include: taskInclude,
     });
   }
 
@@ -61,15 +78,21 @@ export class TasksRepository {
       data: {
         isDone,
       },
+      include: taskInclude,
     });
   }
 
-  async findById(userId: string, id: string) {
-    return await this.prisma.task.findUnique({
-      where: { userId, id },
-      include: {
-        subtasks: true,
-      },
+  async findByIdAccessible(userId: string, id: string) {
+    return await this.prisma.task.findFirst({
+      where: taskReadableWhere(userId, id),
+      include: taskInclude,
+    });
+  }
+
+  async findByIdOwned(userId: string, id: string) {
+    return await this.prisma.task.findFirst({
+      where: taskOwnedWhere(userId, id),
+      include: taskInclude,
     });
   }
 

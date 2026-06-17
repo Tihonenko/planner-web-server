@@ -29,6 +29,9 @@ export class UserEntity implements User {
   // @Exclude()
   role: Role;
 
+  @ApiProperty({ nullable: true })
+  userTypeId: string | null;
+
   @ApiProperty()
   lastLoginAt: Date | null;
 

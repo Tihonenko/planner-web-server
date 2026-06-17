@@ -10,4 +10,7 @@ export const validationSchema = Joi.object({
   JWT_REFRESH_SECRET: Joi.string().required(),
   CORS_ORIGINS: Joi.string().optional(),
   GEMINI_API_KEY: Joi.string().optional(),
+  MAIL_HOST: Joi.string().optional(),
+  MAIL_PORT: Joi.number().optional(),
+  MAIL_FROM: Joi.string().email({ tlds: { allow: false } }).optional(),
 });
